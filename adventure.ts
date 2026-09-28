@@ -617,6 +617,30 @@ class Personagem implements sobTempo{
         }
     }
 
+    gerarSnapshot(): PersonagemSnapShot{
+        return{
+            nome: this.nome,
+            vida: this.vida,
+            vidaMax: this.vidaMax,
+            mana: this.mana,
+            manaMax: this.manaMax,
+            nivel: this.nivel,
+            exp: this.exp
+        }
+    }
+
+    carregarSnapshot(dados: PersonagemSnapShot){
+        this.nome = dados.nome
+        this.vida = dados.vida
+        this.vidaMax = dados.vidaMax
+        this.mana = dados.mana
+        this.manaMax = dados.manaMax
+        this.nivel = dados.nivel
+        this.exp = dados.exp
+        
+        console.log(`${this.nome} teve seu estado restaurado!`)
+    }
+
     novoTurno(){
         if(!this.taVivo()) return
 
