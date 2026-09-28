@@ -722,28 +722,54 @@ class Personagem implements sobTempo{
 
 console.log("=== Config Inicial ===")
 
+const catalogo = new utilitarios()
+catalogo.registArma("Espada Longa", () => new Espada("Espada Longa"))
+catalogo.registArma("Arco Basico", () => new Arco("Arco Basico"))
+catalogo.registArma("Varinha de Fogo", () => new Varinha("Varinha de Fogo"))
+
+catalogo.registHabilidade("Explosão", () => new Explosao())
+catalogo.registHabilidade("Cura", () => new Cura())
+catalogo.registHabilidade("Golpe Poderoso", () => new GolpePoderoso())
+catalogo.registHabilidade("Toque de Veneno", () => new ToqueVeneno())
+catalogo.registHabilidade("Bola de Fogo", () => new BoladeFogo())
+
+const repo = new JsonRepositorio("save.json")
 const partida = new Jogo()
-const mago = new Personagem("Joao", 80, 100)       //P1
-const guerreiro = new Personagem("Carlos", 100, 0) //P2
-const ogro = new Personagem("Luiz", 120, 20)       //Inimigo
 
-partida.addPersonagem(mago)
-partida.addPersonagem(guerreiro)
-partida.addPersonagem(ogro)
-partida.addObjeto(mago)
-partida.addObjeto(guerreiro)
-partida.addObjeto(ogro)
+const saveExistente = repo.carregar()
 
+if (saveExistente) {
+    console.log("=== Partida carregada ===")
+    partida.carregarSnapshot(saveExistente, catalogo)
+} else {
+    console.log("=== Nova Partida ===")
+    const novoMago = new Personagem("Joao", 80, 100)       // P1
+    const novoGuerreiro = new Personagem("Carlos", 100, 0) // P2
+    const novoOgro = new Personagem("Luiz", 120, 20)       // Inimigo
+
+    partida.addPersonagem(novoMago)
+    partida.addPersonagem(novoGuerreiro)
+    partida.addPersonagem(novoOgro)
+    partida.addObjeto(novoMago)
+    partida.addObjeto(novoGuerreiro)
+    partida.addObjeto(novoOgro)
+
+    const espadaLonga = new Espada("Espada Longa")
+    const arcoBasico = new Arco("Arco Basico")
+    const varinhaFogo = new Varinha("Varinha de Fogo")
+
+    novoMago.equiparArma(varinhaFogo)
+    novoGuerreiro.addItem({nome: "Poção", valor: 10 })
+
+    novoMago.equiparHabilt(new Explosao())           // indice 0
+    novoMago.equiparHabilt(new Cura())               // indice 1
+    novoGuerreiro.equiparHabilt(new GolpePoderoso()) // indice 0
+    novoOgro.equiparHabilt(new ToqueVeneno())        // indice 0
+}
+
+const [mago, guerreiro, ogro] = partida.listPersonagem()
 const espadaLonga = new Espada("Espada Longa")
 const arcoBasico = new Arco("Arco Basico")
-const varinhaFogo = new Varinha("Varinha de Fogo")
-mago.equiparArma(varinhaFogo)
-guerreiro.addItem({nome: "Poção", valor: 10 })
-
-mago.equiparHabilt(new Explosao())                 // indice 0
-mago.equiparHabilt(new Cura())                     // indice 1
-guerreiro.equiparHabilt(new GolpePoderoso())       // indice 0
-ogro.equiparHabilt(new ToqueVeneno())              // indice 0
 
 console.log("=== TURNO 1 ===")
 guerreiro.usarHabilt(0, [ogro])
@@ -773,3 +799,5 @@ guerreiro.atacar(ogro)
 
 mago.ganharExp(120)
 guerreiro.ganharExp(120)
+
+repo.salvar(partida.gerarSnapshot())
