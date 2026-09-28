@@ -17,6 +17,7 @@ class JsonRepositorio implements JogoRepositorio{
     carregar(): JogoSnapshot | null {
         if(!existsSync(this.arquivo)){
             console.log("Save não encontrado...")
+            return null
         }
 
         const json = readFileSync(this.arquivo, "utf-8")
