@@ -36,6 +36,7 @@ interface PersonagemSnapShot{
     manaMax: number
     nivel: number
     exp: number
+    inventario: Item[]
 }
 
 interface sobTempo{
@@ -106,7 +107,15 @@ class Inventario{
         for(const item of this.itens){
             console.log(`- ${item.nome}`)
         }
-    } 
+    }
+
+    gerarSnapshot(): Item[]{
+        return [...this.itens]
+    }
+
+    carregarSnapshot(itens: Item[]){
+        this.itens = [...itens]
+    }
 }
 
 interface Arma extends sobTempo{
@@ -625,7 +634,8 @@ class Personagem implements sobTempo{
             mana: this.mana,
             manaMax: this.manaMax,
             nivel: this.nivel,
-            exp: this.exp
+            exp: this.exp,
+            inventario: this.inventario.gerarSnapshot()
         }
     }
 
@@ -637,7 +647,8 @@ class Personagem implements sobTempo{
         this.manaMax = dados.manaMax
         this.nivel = dados.nivel
         this.exp = dados.exp
-        
+        this.inventario.carregarSnapshot(dados.inventario)
+
         console.log(`${this.nome} teve seu estado restaurado!`)
     }
 
