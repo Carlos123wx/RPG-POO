@@ -1,27 +1,46 @@
 import {existsSync, readFileSync, writeFileSync} from "node:fs"
 
 interface JogoRepositorio{
-    salvar(dados: JogoSnapshot): void
-    carregar(): JogoSnapshot | null
+    salvar(indice: number, dados: JogoSnapshot): void
+    carregar(indice: number): JogoSnapshot | null
 }
 
 class JsonRepositorio implements JogoRepositorio{
     constructor(private readonly arquivo: string){}
 
-    salvar(dados: JogoSnapshot): void {
-        const json = JSON.stringify(dados, null, 2)
-        writeFileSync(this.arquivo, json, "utf-8")
-        console.log("Jogo salvo")
-    }
-
-    carregar(): JogoSnapshot | null {
+    private lerSaves(): JogoSnapshot[]{
         if(!existsSync(this.arquivo)){
-            console.log("Save não encontrado...")
-            return null
+            return []
         }
 
         const json = readFileSync(this.arquivo, "utf-8")
-        return JSON.parse(json) as JogoSnapshot
+        return JSON.parse(json) as JogoSnapshot[]
+    }
+
+    salvar(indice: number, dados: JogoSnapshot): void {
+        if(indice < 0){
+            console.log("Índice inválido")
+            return
+        }
+
+        const saves = this.lerSaves()
+        saves[indice] = dados
+        
+        const json = JSON.stringify(saves, null, 2)
+        writeFileSync(this.arquivo, json, "utf-8")
+        console.log(`Jogo salvo no slot ${indice}`)
+    }
+
+    carregar(indice: number): JogoSnapshot | null {
+        const saves = this.lerSaves()
+        const save = saves[indice]
+
+        if(!save){
+            console.log(`Save não encontrado...`)
+            return null
+        }
+
+        return save
     }
 }
 
@@ -743,7 +762,8 @@ catalogo.registHabilidade("Bola de Fogo", () => new BoladeFogo())
 const repo = new JsonRepositorio("save.json")
 const partida = new Jogo()
 
-const saveExistente = repo.carregar()
+const slot: number = 0
+const saveExistente = repo.carregar(slot)
 
 if (saveExistente) {
     console.log("=== Partida carregada ===")
@@ -807,4 +827,4 @@ guerreiro.atacar(ogro)
 mago.ganharExp(120)
 guerreiro.ganharExp(120)
 
-repo.salvar(partida.gerarSnapshot())
+repo.salvar(slot, partida.gerarSnapshot())
