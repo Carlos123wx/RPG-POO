@@ -1,3 +1,43 @@
+import {existsSync, readFileSync, writeFileSync} from "node:fs"
+
+interface JogoRepositorio{
+    salvar(dados: JogoSnapshot): void
+    carregar(): JogoSnapshot | null
+}
+
+class JsonRepositorio implements JogoRepositorio{
+    constructor(private readonly arquivo: string){}
+
+    salvar(dados: JogoSnapshot): void {
+        const json = JSON.stringify(dados, null, 2)
+        writeFileSync(this.arquivo, json, "utf-8")
+        console.log("Jogo salvo")
+    }
+
+    carregar(): JogoSnapshot | null {
+        if(!existsSync(this.arquivo)){
+            console.log("Save não encontrado...")
+        }
+
+        const json = readFileSync(this.arquivo, "utf-8")
+        return JSON.parse(json) as JogoSnapshot
+    }
+}
+
+interface JogoSnapshot{
+    personagens: PersonagemSnapShot[];
+}
+
+interface PersonagemSnapShot{
+    nome: string
+    vida: number
+    vidaMax: number
+    mana: number
+    manaMax: number
+    nivel: number
+    exp: number
+}
+
 interface sobTempo{
     novoTurno(): void
 }
