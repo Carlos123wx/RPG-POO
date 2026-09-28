@@ -25,6 +25,29 @@ class JsonRepositorio implements JogoRepositorio{
     }
 }
 
+class utilitarios{
+    private armas = new Map<string, () => Arma>()
+    private habilidades = new Map<string, () => Habilidade>()
+
+    registArma(nome: string, fabrica: () => Arma){
+        this.armas.set(nome, fabrica)
+    }
+
+    registHabilidade(nome: string, fabrica: () => Habilidade){
+        this.habilidades.set(nome, fabrica)
+    }
+
+    criarArma(nome: string): Arma | undefined{
+        const fabrica = this.armas.get(nome)
+        return fabrica ? fabrica() : undefined
+    }
+
+    criarHabilidade(nome:string): Habilidade | undefined{
+        const fabrica = this.habilidades.get(nome)
+        return fabrica ? fabrica() : undefined
+    }
+}
+
 interface JogoSnapshot{
     personagens: PersonagemSnapShot[];
 }
@@ -38,6 +61,8 @@ interface PersonagemSnapShot{
     nivel: number
     exp: number
     inventario: Item[]
+    armaEquip: string | null
+    habilidades: string[]
 }
 
 interface sobTempo{
@@ -59,6 +84,22 @@ class Jogo implements sobTempo{
 
     addObjeto(objt: sobTempo){
         this.objetosTempo.push(objt)
+    }
+
+    gerarSnapshot(): JogoSnapshot{
+        return{personagens: this.personagens.map(p => p.gerarSnapshot())}
+    }
+
+    carregarSnapshot(dados: JogoSnapshot, utilits: utilitarios){
+        this.personagens = []
+        this.objetosTempo = []
+
+        dados.personagens.forEach(dadosPers => {
+            const pers = new Personagem(dadosPers.nome, dadosPers.vidaMax, dadosPers.manaMax)
+            pers.carregarSnapshot(dadosPers, utilits)
+            this.addPersonagem(pers)
+            this.addObjeto(pers)
+        })
     }
 
     novoTurno(): void{
@@ -636,11 +677,13 @@ class Personagem implements sobTempo{
             manaMax: this.manaMax,
             nivel: this.nivel,
             exp: this.exp,
-            inventario: this.inventario.gerarSnapshot()
+            inventario: this.inventario.gerarSnapshot(),
+            armaEquip: this.armaEquip ? this.armaEquip.nome : null,
+            habilidades: this.habilitEquip.map(h => h.nome)
         }
     }
 
-    carregarSnapshot(dados: PersonagemSnapShot){
+    carregarSnapshot(dados: PersonagemSnapShot, utilits: utilitarios){
         this.nome = dados.nome
         this.vida = dados.vida
         this.vidaMax = dados.vidaMax
@@ -648,7 +691,18 @@ class Personagem implements sobTempo{
         this.manaMax = dados.manaMax
         this.nivel = dados.nivel
         this.exp = dados.exp
+
         this.inventario.carregarSnapshot(dados.inventario)
+        this.armaEquip = null
+        if(dados.armaEquip){
+            const arma = utilits.criarArma(dados.armaEquip)
+            if(arma) this.equiparArma(arma)
+        }
+        this.habilitEquip = []
+        dados.habilidades.forEach(nomeHab => {
+            const hab = utilits.criarHabilidade(nomeHab)
+            if(hab) this.equiparHabilt(hab)
+        })
 
         console.log(`${this.nome} teve seu estado restaurado!`)
     }
