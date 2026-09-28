@@ -365,7 +365,7 @@ class BoladeFogo implements Habilidade{
             return
         }
 
-        if(this.cooldown.estado()){
+        if(!this.cooldown.estado()){
             console.log(`${this.nome} está em cooldown`)
             return
         }
@@ -580,6 +580,8 @@ class Personagem implements sobTempo{
     }
 
     atacar(alvo: Personagem){
+        if(!this.taVivo()) return
+        
         if(!this.armaEquip){
             console.log(`${this.nome} não equipou uma arma`)
             return
@@ -590,6 +592,8 @@ class Personagem implements sobTempo{
     }
 
     usarHabilt(indice: number, alvo: Personagem[]){
+        if(!this.taVivo()) return
+        
         const habilt = this.habilitEquip[indice]
         if(!habilt){
             console.log(`${this.nome} não possui habilidade nesse espaço`)
@@ -609,6 +613,8 @@ class Personagem implements sobTempo{
     }
 
     recargaMana(){
+        if(!this.taVivo()) return
+        
         const quant = 20
         const temp = this.mana + quant
         if(temp > this.manaMax){
@@ -625,6 +631,7 @@ class Personagem implements sobTempo{
     }
 
     aplicaEfeito(efeito: Efeito){
+        if(!this.taVivo()) return
         this.sobEfeito.push(efeito)
     }
 
@@ -643,6 +650,8 @@ class Personagem implements sobTempo{
     }
 
     recebeCura(cura: number){
+        if(!this.taVivo()) return
+
         const temp = this.vida + cura
         if(temp > this.vidaMax){
             console.log(`${this.nome} curou ${this.vidaMax - this.vida}HP`)
@@ -703,8 +712,6 @@ class Personagem implements sobTempo{
             const hab = utilits.criarHabilidade(nomeHab)
             if(hab) this.equiparHabilt(hab)
         })
-
-        console.log(`${this.nome} teve seu estado restaurado!`)
     }
 
     novoTurno(){
