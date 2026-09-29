@@ -1,5 +1,3 @@
-import { inherits } from "node:util";
-
 interface sobTempo{
     novoTurno(): void
 }
@@ -17,7 +15,7 @@ class Jogo implements sobTempo{
         this.objtosTempo.push(objt)
     }
 
-    novoTurno(): void {
+    novoTurno(){
         this.objtosTempo.forEach(i => i.novoTurno())
     }
 }
@@ -38,6 +36,55 @@ class Cooldown implements sobTempo{
 
     novoTurno(): void {
         if(this.turnosRestantes > 0) this.turnosRestantes --
+    }
+}
+
+interface Item{
+    nome: string
+    valor: number
+    usar(atacante: Personagem, alvo: Personagem): void
+}
+
+class Inventario{
+    private itens: Item[] = []
+
+    add(item: Item){
+        this.itens.push(item)
+    }
+
+    remov(nomeItem: string){
+        this.itens = this.itens.filter(i => i.nome !== nomeItem)
+    }
+
+    usar(nomeItem: string, atacante: Personagem, alvo: Personagem){
+        const item = this.itens.find(i => i.nome === nomeItem)
+        if(!item){
+            console.log(`${nomeItem} não encontrado`)
+        }else{
+            item.usar(atacante, alvo)
+            this.remov(nomeItem)
+        }
+    }
+
+    list(){
+        this.itens.forEach(i => console.log(`- ${i.nome}`))
+    }
+}
+
+class Pocao implements Item{
+
+    nome: string
+    valor: number
+    cura: number
+
+    constructor(nome: string, valor: number, cura: number){
+        this.nome = nome
+        this.valor = valor
+        this.cura = cura
+    }
+
+    usar(atacante: Personagem, alvo: Personagem){
+        alvo.recebeCura(this.cura)
     }
 }
 
@@ -177,6 +224,7 @@ class Personagem implements sobTempo{
     private manaMax: number
     private exp: number
     private nivel: number
+    private inventario: Inventario
 
     constructor(nome: string, vidaMax: number, manaMax: number){
         this.nome = nome
@@ -186,6 +234,21 @@ class Personagem implements sobTempo{
         this.mana = manaMax
         this.exp = 0
         this.nivel = 1
+        this.inventario = new Inventario
+    }
+
+    addItem(item: Item){
+        this.inventario.add(item)
+    }
+
+    usarItem(nomeItem: string, alvo: Personagem){
+        this.inventario.usar(nomeItem, this, alvo)
+        this.inventario.remov(nomeItem)
+    }
+
+    listarItens(){
+        console.log(`===== Itens =====`)
+        this.inventario.list()
     }
 
     taVivo(): boolean{
@@ -198,8 +261,10 @@ class Personagem implements sobTempo{
 
         if(temp < 0){
             this.vida = 0
+            console.log(`${this.nome} recebeu ${dano - this.vida} de dano.`)
         }else{
             this.vida -= dano
+            console.log(`${this.nome} recebeu ${dano} de dano.`)
         }
     }
 
@@ -209,8 +274,10 @@ class Personagem implements sobTempo{
 
         if(temp > this.vidaMax){
             this.vida = this.vidaMax
+            console.log(`${this.nome} curou ${this.vidaMax - this.vida}HP.`)
         }else{
             this.vida += cura
+            console.log(`${this.nome} curou ${cura}HP.`)
         }
     }
 
@@ -227,3 +294,12 @@ class Personagem implements sobTempo{
         
     }
 }
+
+const pocao = new Pocao("Poção de Cura", 10, 20)
+const guerreiro = new Personagem("Carlos", 50, 10)
+
+guerreiro.addItem(pocao)
+guerreiro.listarItens()
+guerreiro.recebeDano(30)
+guerreiro.usarItem("Poção de Cura", guerreiro)
+guerreiro.listarItens()
