@@ -192,6 +192,28 @@ class Personagem implements sobTempo{
         return this.vida > 0
     }
 
+    recebeDano(dano: number){
+        if(!this.taVivo()) return
+        const temp = this.vida - dano
+
+        if(temp < 0){
+            this.vida = 0
+        }else{
+            this.vida -= dano
+        }
+    }
+
+    recebeCura(cura: number){
+        if(!this.taVivo()) return
+        const temp = this.vida + cura
+
+        if(temp > this.vidaMax){
+            this.vida = this.vidaMax
+        }else{
+            this.vida += cura
+        }
+    }
+
     gastaMana(quant: number): boolean{
         if(this.mana < quant){
             return false
